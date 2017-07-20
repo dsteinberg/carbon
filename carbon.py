@@ -90,7 +90,11 @@ models = {
 }
 for name, mod in models.items():
     print("Fitting {}...".format(name))
-    model = make_pipeline(ss, mod)
+
+    if name == 'RandomForest':
+        model = mod
+    else:
+        model = make_pipeline(ss, mod)
 
     # Train
     model.fit(X_train, y_train)
