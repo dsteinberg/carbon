@@ -12,6 +12,7 @@ from sklearn.metrics import (r2_score, mean_squared_error,
                              explained_variance_score)
 
 from GPflow.sgpr import SGPR
+from GPflow.gpr import GPR
 from GPflow.kernels import RBF, Linear, White
 
 
@@ -24,8 +25,9 @@ SUBSET_PROPORTION = 0.1
 LENSCALE = 1.
 SCALAR = False
 
-N_INDUCING = 500
-FIX_INDUCING = True
+SPARSE_GP = True
+N_INDUCING = 300
+FIX_INDUCING = False
 
 
 # FILE = "C:/Users/Senani_2/Documents/Data_61_project_2017/To_Daniel_17072017/" \
@@ -70,7 +72,10 @@ def main():
         + White(D)
 
     # GP
-    gp = GP(kern, fix_inducing=FIX_INDUCING, n_inducing=N_INDUCING)
+    if SPARSE_GP:
+        gp = SparseGP(kern, fix_inducing=FIX_INDUCING, n_inducing=N_INDUCING)
+    else:
+        gp = GP(kern)
 
     # Random Forest
     rf = RandomForestRegressor(n_estimators=10, random_state=SEED)
@@ -126,6 +131,27 @@ def main():
 
 
 class GP:
+
+    def __init__(self, kernel, maxiter=1000):
+        self.kernel = kernel
+        self.maxiter = maxiter
+
+    def fit(self, X, y):
+        self.gp = GPR(X=X, Y=y[:, np.newaxis], kern=self.kernel)
+        self.gp.optimize(maxiter=self.maxiter)
+
+        return self
+
+    def predict(self, X):
+        y, vy = self.gp.predict_y(X)
+        sy = np.sqrt(vy)
+        return y, sy
+
+    def __repr__(self):
+        return "GPflow GP"
+
+
+class SparseGP:
 
     def __init__(self, kernel, n_inducing=200, fix_inducing=False,
                  maxiter=1000):
