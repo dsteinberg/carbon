@@ -20,12 +20,10 @@ SEED = 101
 TEST_PROPORTION = 0.1
 
 SUBSET = True
-SUBSET_PROPORTION = 0.2
+SUBSET_PROPORTION = 0.1
 
-LENSCALE = 1000.
+LENSCALE = 10.
 SCALAR = False
-
-COLS = 86
 
 
 TR_FILE = "~/Code/carbon/Data_for_Python_V2_wrong_coord_15082017.csv"
@@ -48,6 +46,8 @@ def train():
     # Training and testing split
     y, X = df.iloc[:, 0].values, df.iloc[:, 1:].values
     categorical_cols = [-1]
+    Dcon = X.shape[1] - 1
+    Dcat = len(set(X[:, -1]))
 
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=TEST_PROPORTION, random_state=SEED)
@@ -64,7 +64,7 @@ def train():
     ss = StandardScaler()
 
     # Kernel
-    l = LENSCALE if SCALAR else LENSCALE * COLS
+    l = LENSCALE if SCALAR else LENSCALE * np.ones(Dcon + Dcat)
     kern = 1. * Matern(length_scale=l, nu=2.5) + WhiteKernel(noise_level=0.01)
 
     # GP
