@@ -22,8 +22,9 @@ TEST_PROPORTION = 0.1
 SUBSET = True
 SUBSET_PROPORTION = 0.1
 
-LENSCALE = 10.
-SCALAR = False
+LENSCALE = 1000.
+SCALAR = True
+NOISE = 100
 
 
 TR_FILE = "~/Code/carbon/Data_for_Python_V2_wrong_coord_15082017.csv"
@@ -65,7 +66,7 @@ def train():
 
     # Kernel
     l = LENSCALE if SCALAR else LENSCALE * np.ones(Dcon + Dcat)
-    kern = 1. * Matern(length_scale=l, nu=2.5) + WhiteKernel(noise_level=0.01)
+    kern = 1. * Matern(length_scale=l, nu=2.5) + WhiteKernel(noise_level=NOISE)
 
     # GP
     gp = GaussianProcessRegressor(kern, random_state=SEED)
