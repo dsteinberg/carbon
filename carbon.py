@@ -22,13 +22,13 @@ TEST_PROPORTION = 0.1
 SUBSET = True
 SUBSET_PROPORTION = 0.1
 
-LENSCALE = 1000.
-SCALAR = True
-NOISE = 100
+LENSCALE = 10.
+SCALAR = False
+NOISE = 200
 
 
-TR_FILE = "~/Code/carbon/Data_for_Python_V2_wrong_coord_15082017.csv"
-QR_FILE = "~/Code/carbon/Grid_NSW_Crop_2015_Python_V2_1482017.csv"
+TR_FILE = "~/Code/carbon/Data_for_Python_V4_wrong_coord_17082017.csv"
+QR_FILE = "~/Code/carbon/Grid_NSW_Crop_2015_Python_V4_1782017.csv"
 MOD_FILE = "/home/dsteinberg/Code/carbon/GP.pkl"
 
 OUTPUT_FILE = "~/Code/carbon/output.csv"
@@ -69,7 +69,7 @@ def train():
     kern = 1. * Matern(length_scale=l, nu=2.5) + WhiteKernel(noise_level=NOISE)
 
     # GP
-    gp = GaussianProcessRegressor(kern, random_state=SEED)
+    gp = GaussianProcessRegressor(kern, random_state=SEED, normalize_y=True)
     gp.predict = partial(gp.predict, return_std=True)  # patch for pipeline
 
     # Random Forest
@@ -153,7 +153,7 @@ def query():
         "Longitude": lon,
         "Latitude": lat
     })
-    res.to_csv(OUTPUT_FILE)
+    res.to_csv(OUTPUT_FILE, index=False)
 
 
 if __name__ == "__main__":
