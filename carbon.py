@@ -1,5 +1,6 @@
 import pickle
 from functools import partial
+from multiprocessing import Pool
 
 import numpy as np
 import pandas as pd
@@ -30,6 +31,10 @@ NOISE = 200
 TR_FILE = "~/Code/carbon/Data_for_Python_V4_wrong_coord_17082017.csv"
 QR_FILE = "~/Code/carbon/Grid_NSW_Crop_2015_Python_V4_1782017.csv"
 MOD_FILE = "/home/dsteinberg/Code/carbon/GP.pkl"
+
+PARTITIONS = 50
+JOBS = 4
+
 
 OUTPUT_FILE = "~/Code/carbon/output.csv"
 
@@ -141,9 +146,15 @@ def query():
         model = pickle.load(f)
 
     # Predict
-    print("Predicting {} samples.".format(len(df)))
-    Ey, Sy = model.predict(df.values)  # GP
-    # Ey = model.predict(df.values)  # Not GP
+    pred = partial(predict, model)  # need to close over model.predict for pool
+    X = np.array_split(df.values, PARTITIONS)  # Work
+    with Pool(processes=JOBS) as pool:
+        # Map over work
+        results = pool.map(pred, X)
+
+    # Combine results
+    Ey, Sy = zip(*results)
+    Ey, Sy = np.concatenate(Ey), np.concatenate(Sy)
 
     # Save results
     print("Saving results: {}".format(OUTPUT_FILE))
@@ -156,6 +167,11 @@ def query():
     res.to_csv(OUTPUT_FILE, index=False)
 
 
+def predict(model, data):
+    print("Predicting {} samples...".format(len(data)))
+    return model.predict(data)
+
+
 if __name__ == "__main__":
-    train()
+    # train()
     query()
